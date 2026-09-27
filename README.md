@@ -8,6 +8,49 @@ The core numbers were measured on one RTX 3060 12GB, the most owned desktop GPU 
 every surveyed system, August 2026), and the RTX 50 numbers on an RTX 5060 Ti 16GB. Other cards land as
 rows in `sweeps/` from their owners.
 
+## Run it on your card
+
+Prebuilt Linux bundles on the [Hugging Face repo](https://huggingface.co/sudoingx/Ternary-Bonsai-2-27B-PTQ1_0-MTP-GGUF),
+driver only, no compiler. Find your card, take its bundle and script:
+
+| your card | VRAM | bundle | script | what you get |
+| --- | --- | --- | --- | --- |
+| RTX 3050 8GB, 3060 8GB, 3060 Ti, 3070, 3070 Ti, 3080 10GB, 4060, 4060 Ti 8GB | 8 to 10 GB | cuda12.4 sm86-sm89 | `serve-8gb.sh` | 98K context; 64K if the card also drives your display |
+| RTX 3060 12GB, 3080 12GB, 3080 Ti, 4070, 4070 Super, 4070 Ti | 12 GB | cuda12.4 sm86-sm89 | `serve-12gb-mtp.sh` | the MTP head, 131K context |
+| RTX 4060 Ti 16GB, 4070 Ti Super, 4080, 4080 Super, 3090, 3090 Ti, 4090 | 16 to 24 GB | cuda12.4 sm86-sm89 | `serve-12gb-mtp.sh` with `CTX=262144` | the MTP head, the full 262K |
+| RTX 5050, 5060, 5060 Ti 8GB | 8 GB | cuda12.8 sm120 | `serve-8gb.sh` | 98K context; 64K with a display |
+| RTX 5070 | 12 GB | cuda12.8 sm120 | `serve-12gb-mtp.sh` | the MTP head, 131K context |
+| RTX 5060 Ti 16GB, 5070 Ti, 5080, 5090 | 16 to 32 GB | cuda12.8 sm120 | `serve-16gb-mtp-vision.sh` | the MTP head, vision and the full 262K |
+
+Laptop GPUs: the same series, go by your VRAM. Measured so far: RTX 3060 12GB, RTX 3060 Ti 8GB, RTX 4070 12GB (a
+contributor) and RTX 5060 Ti 16GB (`sweeps/`); the other rows follow from the same VRAM numbers. Run it on yours and
+open a PR with your row.
+
+RTX 5060 Ti 16GB (any 16GB or bigger RTX 50), four commands:
+
+```
+hf download sudoingx/Ternary-Bonsai-2-27B-PTQ1_0-MTP-GGUF Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf bonsai2-small-gpu-linux-x64-cuda12.8-sm120-ff41412.tar.gz --local-dir ~/models/bonsai2-27b
+hf download prism-ml/Ternary-Bonsai-2-27B-gguf Ternary-Bonsai-2-27B-mmproj-Q8_0.gguf --local-dir ~/models/bonsai2-27b
+cd ~/models/bonsai2-27b && tar xzf bonsai2-small-gpu-linux-x64-cuda12.8-sm120-ff41412.tar.gz
+./bonsai2-small-gpu-linux-x64-cuda12.8-sm120-ff41412/serve-16gb-mtp-vision.sh
+```
+
+RTX 30 or 40 with 12GB or more, three:
+
+```
+hf download sudoingx/Ternary-Bonsai-2-27B-PTQ1_0-MTP-GGUF Ternary-Bonsai-2-27B-PTQ1_0-mtp.gguf bonsai2-small-gpu-linux-x64-cuda12.4-sm86-sm89-285542d.tar.gz --local-dir ~/models/bonsai2-27b
+cd ~/models/bonsai2-27b && tar xzf bonsai2-small-gpu-linux-x64-cuda12.4-sm86-sm89-285542d.tar.gz
+./bonsai2-small-gpu-linux-x64-cuda12.4-sm86-sm89-285542d/serve-12gb-mtp.sh
+```
+
+On 8GB cards take `Ternary-Bonsai-2-27B-PTQ1_0.gguf` from `prism-ml/Ternary-Bonsai-2-27B-gguf` instead and run
+`serve-8gb.sh`. Then open `http://localhost:8899`: the llama.cpp chat UI, and an OpenAI-compatible API at `/v1`.
+
+What you need: Linux x86-64 (on Windows, WSL2, see below) and `hf` (`pip install -U huggingface_hub`). The RTX 50
+bundle wants NVIDIA driver 570 or newer and Ubuntu 24.04 or newer (glibc 2.38); the RTX 30 and 40 bundle wants driver
+525 or newer and Ubuntu 22.04 or newer. On a card that also drives your display, start with a smaller window:
+`CTX=131072 ./serve-16gb-mtp-vision.sh`. Every script takes `MODEL`, `CTX`, `HOST` and `PORT` from the environment.
+
 ## The numbers, RTX 3060 12GB, llama-bench r=3, flag off, original file
 
 | build | tg128 | pp512 |
