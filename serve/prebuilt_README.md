@@ -6,7 +6,7 @@ A self-contained build of the PrismML llama.cpp fork for Ternary Bonsai 2 27B on
   on an RTX 3060 12GB, 2 to 4 token verification batches at 1.2x to 1.8x the cost of one token instead of 1.5x to
   2.8x, and the `GGML_CUDA_BATCH_INVARIANT=1` switch that makes a token's logits bit-identical whether it is decoded
   alone or inside a batch of up to 4, so speculative decoding is lossless; 5 and more columns take the MMQ tile path;
-- PrismML's pull request 214 (professorpalmer), merged into `prism` and underneath this build: the branch-free PTQ1_0
+- PrismML's pull request 214, merged into `prism` and underneath this build: the branch-free PTQ1_0
   MMQ tile loader and the full Ampere tile table, which lift prompt processing on the RTX 3060 from 269 to 522.5 tok/s
   (llama-bench pp512, r=3, this bundle's own binary);
 - the Hadamard fix for the qwen35 MTP draft graph, landed in `prism` as pull request 205 (our 217 closed in its favour),

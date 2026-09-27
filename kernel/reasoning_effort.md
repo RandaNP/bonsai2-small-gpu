@@ -38,7 +38,7 @@ the common client default, and 16384). Thinking tokens = server `reasoning_conte
 generated = `usage.completion_tokens`. Complete = SVG contains `<svg` and `</svg>`; HTML contains `<html` and `</html>`; Python parses
 with `ast` and has at least 100 non-empty lines. Runs 1 and 2 were identical in every cell (greedy).
 
-Tasks: SVG = the prompt from professorpalmer's `bench/reason_ab.py` with the subject he lists first, "Draw a five-tier pagoda as a
+Tasks: SVG = "Draw a five-tier pagoda as a
 single self-contained SVG. No markdown, no explanation, inline SVG only. Temperature-0 style: clean geometric shapes, white background.";
 HTML = a single self-contained to-do list page with localStorage; Python = a key-value store CLI of at least 100 lines with a self-test.
 

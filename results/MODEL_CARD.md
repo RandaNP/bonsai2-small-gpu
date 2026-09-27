@@ -78,7 +78,7 @@ Header changes versus Bonsai 2: `qwen35.block_count` 64 → 65, `qwen35.nextn_pr
 
 ## Serving notes
 
-**Set `--reasoning-effort medium`.** The GGUF chat template defaults it to `xhigh`, which injects a "think carefully through the task" system line, and on an RTX 3060 at a 4,096-token client cap that returned **nothing at all** on all three build tasks tested: an SVG, a single-file HTML page and a 100-line Python CLI each spent the whole 4,096 tokens thinking and emitted no answer, in 108 seconds. At `medium` the same three completed in 45 to 58 seconds. Raising the cap does not fix it on its own, the SVG was still empty after 16,384 thinking tokens and 477 seconds. Three tasks, two caps, two runs each, every pair identical; the table is in [`kernel/reasoning_effort.md`](https://github.com/sudoingX/bonsai2-small-gpu/blob/main/kernel/reasoning_effort.md). Credit to professorpalmer for flagging the default. Per request it is the OpenAI `reasoning_effort` field; the serve scripts in the repo already pass it.
+**Set `--reasoning-effort medium`.** The GGUF chat template defaults it to `xhigh`, which injects a "think carefully through the task" system line, and on an RTX 3060 at a 4,096-token client cap that returned **nothing at all** on all three build tasks tested: an SVG, a single-file HTML page and a 100-line Python CLI each spent the whole 4,096 tokens thinking and emitted no answer, in 108 seconds. At `medium` the same three completed in 45 to 58 seconds. Raising the cap does not fix it on its own, the SVG was still empty after 16,384 thinking tokens and 477 seconds. Three tasks, two caps, two runs each, every pair identical; the table is in [`kernel/reasoning_effort.md`](https://github.com/sudoingX/bonsai2-small-gpu/blob/main/kernel/reasoning_effort.md). Per request it is the OpenAI `reasoning_effort` field; the serve scripts in the repo already pass it.
 
 VRAM on an RTX 3060 12GB: fat file 10,638 MiB at 131072, 11,726 MiB at 163840 (with `-ctkd q4_0 -ctvd q4_0`); lean file 9,956 MiB at 131072, 11,990 MiB at 196608. Stock ggml-org llama.cpp cannot read PTQ1_0 and produces gibberish on any Bonsai 2 file; use the PrismML fork or the branch above.
 
@@ -90,7 +90,7 @@ Sampling per the base card: thinking `temperature 1.0, top_p 0.95, top_k 20`; in
 
 ## Credit
 
-PrismML for Bonsai 2 and the fork; Qwen for the head; unsloth for the donor GGUF. decent-jawfish, ProCreations and BoldingBuilds for the PQ2_0 grafts and the Hadamard patch, and BoldingBuilds for publishing the PTQ1_0 negative result this file answers. professorpalmer's [#221](https://github.com/PrismML-Eng/llama.cpp/pull/221) stacks this kernel with his own and reaches 103 tok/s with the head at 262K on a 4070 12GB. The graft recipe traces back to [sudoingX/qwen38-mtp](https://github.com/sudoingX/qwen38-mtp).
+PrismML for Bonsai 2 and the fork; Qwen for the head; unsloth for the donor GGUF. decent-jawfish, ProCreations and BoldingBuilds for the PQ2_0 grafts and the Hadamard patch, and BoldingBuilds for publishing the PTQ1_0 negative result this file answers. The graft recipe traces back to [sudoingX/qwen38-mtp](https://github.com/sudoingX/qwen38-mtp).
 
 ## Licence
 
