@@ -31,10 +31,11 @@ RTX 50 cards with the head off), and llama.cpp's flash-attention q4_0 V dequant 
 (long-context decode with a q4_0 K/V cache ran at less than half speed). The branch also moved onto PrismML's latest
 release, `prism-b10743-adfffbe`, so if you built it before v1.1, clone it again.
 
-Measured on an RTX 5060 Ti 16GB (`sweeps/rtx5060ti-16gb.md`): fresh decode 42.8 tok/s stock, 52.3 with the kernel and
-67.8 with the MTP head (probe median, fat file, 131072); 39.0 tok/s with the head at 38,774 tokens of context and 22.0 at
-119,489; the head, the vision tower and the full 262,144 window together in 15,070 MiB; four requests at once 121.9 tok/s
-in aggregate with the head, where stock does 58.7 without it.
+Measured on an RTX 5060 Ti 16GB with the v1.1 bundle (`sweeps/rtx5060ti-16gb.md`): fresh decode 42.0 tok/s on PrismML's
+prism-b10743, 53.4 with v1.1 and 67.3 with the MTP head (probe median, the 16GB line: fat file, mmproj, 262144); 39.5
+tok/s with the head at 38,774 tokens of context and 21.0 at 119,489; the head, the vision tower and the full 262,144
+window together in 15,070 MiB; four requests at once 127.1 tok/s in aggregate with the head, where prism-b10743 does 58.3
+without it.
 
 No compiler: the Hugging Face repo carries a cuda12.8 sm_120 bundle next to the cuda12.4 one (driver 570 or newer),
 with a `serve-16gb-mtp-vision.sh` for 16GB cards; its README is `serve/prebuilt_README_sm120.md`.

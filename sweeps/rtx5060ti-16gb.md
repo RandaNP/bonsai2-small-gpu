@@ -119,6 +119,24 @@ The head at depth (`deep_probe.py`, fat file, 131072, n-max 1, the knob, median 
 Prefill unchanged. q4_0 now decodes within 4% of q8_0 at half the K/V bytes, so the full 262K window with the head and
 the vision tower keeps its speed on 16 GB.
 
+## v1.1, the cuda12.8 sm120 bundle (Sep 27)
+
+The release tarball `bonsai2-small-gpu-linux-x64-cuda12.8-sm120-ff41412` (`bonsai2` v1.1, build 10757), extracted into a
+clean directory and run under `env -i` with its own scripts, the way a new owner runs it. Stock is PrismML's
+`prism-b10743-adfffbe` built from source, same card, same session.
+
+| check | result |
+| --- | --- |
+| `serve-16gb-mtp-vision.sh` (fat file, mmproj, 262144, head n-max 1, the knob) | loads in 4 s, 15,070 MiB, 15,326 after an image request |
+| identity, head off vs n-max 1, and three head sessions | byte-identical (`2ff5fe93` / `d3e4b03c` / `3b15237f`, the same bytes as every earlier build) |
+| probe, head n-max 1 | 67.3 tok/s median (code 71.0, prose 59.5, bash 67.3) |
+| probe, head off, same config | 53.4 tok/s median |
+| probe, prism-b10743, head off, same config | 42.0 tok/s median |
+| llama-bench tg128 / pp512, original file | 54.49 / 1,061.88 tok/s fresh (r=3), 29.49 / 595.47 at 64K depth (r=2) |
+| the head with 38,774 / 119,489 tokens of context | 39.52 / 20.99 tok/s (runs 39.76 and 39.28, 19.95 and 22.04) |
+| four requests at once, 32768 each | head n-max 1 127.08 / 129.23 tok/s aggregate, 31.66 to 36.20 per request; prism-b10743 head off 58.34 / 58.92 |
+| the shop-page image | 1,048 prompt tokens at 629 tok/s, answer at 69.61 tok/s, 53 of 60 drafts accepted, all six facts right |
+
 ## What fits in 16GB (largest window that loads and completes a 1K-token request)
 
 | configuration | window | VRAM after load | after the request | after an image request |
