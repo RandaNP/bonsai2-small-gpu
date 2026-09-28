@@ -78,7 +78,9 @@ Measured on an RTX 5060 Ti 16GB with the v1.1 bundle (`sweeps/rtx5060ti-16gb.md`
 prism-b10743, 53.4 with v1.1 and 67.3 with the MTP head (probe median, the 16GB line: fat file, mmproj, 262144); 39.5
 tok/s with the head at 38,774 tokens of context and 21.0 at 119,489; the head, the vision tower and the full 262,144
 window together in 15,070 MiB; four requests at once 127.1 tok/s in aggregate with the head, where prism-b10743 does 58.3
-without it.
+without it. At 261,000 tokens, the full window, v1.1 decodes at 12.35 tok/s with the head off and 12.07 with it, where
+prism-b10743 does 3.73 (3.3x, head off to head off); past about 120K tokens the head stops adding speed. Up to 8 requests
+at once, four agents with 60K of context each and board power are in the same file.
 
 No compiler: the Hugging Face repo carries a cuda12.8 sm_120 bundle next to the cuda12.4 one (driver 570 or newer),
 with a `serve-16gb-mtp-vision.sh` for 16GB cards; its README is `serve/prebuilt_README_sm120.md`.
