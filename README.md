@@ -23,8 +23,10 @@ driver only, no compiler. Find your card, take its bundle and script:
 | RTX 5060 Ti 16GB, 5070 Ti, 5080, 5090 | 16 to 32 GB | cuda12.8 sm120 | `serve-16gb-mtp-vision.sh` | the MTP head, vision and the full 262K |
 
 Laptop GPUs: the same series, go by your VRAM. Measured so far: RTX 3060 12GB, RTX 3060 Ti 8GB, RTX 4070 12GB (a
-contributor) and RTX 5060 Ti 16GB (`sweeps/`); the other rows follow from the same VRAM numbers. Run it on yours and
-open a PR with your row.
+contributor), RTX 5060 Ti 16GB and the RTX 3000 Ada Laptop 8GB (a contributor); the other rows follow from the same VRAM
+numbers. The Ada Laptop is the case to read before expecting the kernel's gains: on a bandwidth-bound laptop part the
+PTQ1_0 mat-vec is worth about +3%, and the MTP head pays only with the lean (no-embed) file at a 64K window
+(`sweeps/rtx3000Ada-8gb.md`). Run it on yours and open a PR with your row.
 
 RTX 5060 Ti 16GB (any 16GB or bigger RTX 50), four commands:
 
