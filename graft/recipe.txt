@@ -92,8 +92,13 @@ no extra Python packages are needed for the graft itself. About 25 GB of disk.
    runs at 33.5 tok/s median against 25.9 for the flag off, greedy output
    byte-identical, where the fat file of step 3 runs at 11.9 (it spills).
    n-max 1 is 31.0 and n-max 2 is the pick here, unlike the 12 GB card.
-   A 73728 window also works and is stable (30.9 tok/s median, lossless, a
-   1,500-token generation completes without OOM); 81920 and above do not.
+   A 73728 window also works and is stable (30.0 tok/s median, lossless, a
+   1,500-token generation completes without OOM); on that bundle 81920 and
+   above do not. On the current PrismML `prism` branch (`f13265492`,
+   post-#221) the window reaches 88064 at no loss against 64K (36.1 median,
+   lossless, +33% over the 27.1 base); the cliff is 89088, and the
+   GGML_CUDA_BATCH_INVARIANT switch costs about 12% there. On battery the
+   same window is about 15-20% slower and the cliff does not move.
 
    The prebuilt fork refuses it: "Hadamard-latent table 'token_embd.weight' is
    read without the inverse transform". Apply results/0001-qwen35-mtp-hadamard-inverse.patch
