@@ -222,3 +222,68 @@ changes). Every AC number above was re-run on battery.
   bundle it was free, on `prism` it costs ~12%.
 - The current `prism` branch contains this repo's own PTQ1_0 kernel series (via #221), so a
   build from it does not need the `kernel/patches` applied by hand.
+
+## 2026-10-14: `prism-2026-10-14` (`e3de71522`) — micro-batch and prompt-cache checkpoints
+
+Re-tested on the same card and in one session after rebasing the fork 25 commits forward
+(`f13265492` -> `e3de71522`) and rebuilding it (`-DGGML_CUDA=ON`, `-DCMAKE_CUDA_ARCHITECTURES=89`,
+CUDA 12.4). Flags as the 8GB+MTP line: `-m Ternary-Bonsai-2-27B-PTQ1_0-MTP.gguf` (lean),
+`-c 88064 -ngl 99 -fa on -np 1 -ctk q4_0 -ctv q4_0 --jinja --spec-type draft-mtp
+--spec-draft-n-max 2 --reasoning-effort medium`, plus the micro-batch and checkpoint flags
+below. No `GGML_CUDA_BATCH_INVARIANT`.
+
+### The 25-commit rebase buys no decode here
+
+`graft/probe.py`, all arms run back to back in one session:
+
+| binary | mean | median | served VRAM |
+| --- | ---: | ---: | ---: |
+| `f13265492` (old) | 35.8 | 34.0 | 7,929 MiB |
+| `e3de71522` (new) | 36.2 / 36.7 | 35.8 / 38.7 | 7,929 MiB |
+| `e3de71522` + `LLAMA_MTP_CHAIN=1` | 36.2 | 34.4 | 7,929 MiB |
+
+The spread is session noise (the old row itself has read 34-40 across sessions), so the rebase
+is decode-neutral on this card. `LLAMA_MTP_CHAIN=1` (the one-graph MTP draft chain, off by
+default) is not a win here. MTP acceptance stayed healthy (0.60-1.00, mean accepted length
+~2.2-2.8). The rebase is still worth taking: it carries the quantized-K/V short-query MMA FA
+fix, the `kv-cache` `seq_rm` clamp, and `bf197c43d`, which reuses evicted prompt-checkpoint
+buffers.
+
+### `-ub 128` is 3.4x the default prefill
+
+Prefill, cache-busted (`/completion`, `n_predict=1`, a fresh nonce each run), 3 runs per arm,
+with `--ctx-checkpoints 16 --checkpoint-min-step 0`:
+
+| `-ub` | prompt_ms (~2,026 tokens) | prefill |
+| ---: | ---: | ---: |
+| 512 (default) | 15,725 | 128.8 tok/s |
+| 384 | 8,688 | 233.1 tok/s |
+| 256 | 4,818 | 420.4 tok/s |
+| **128** | **4,630** | **437.5 tok/s** |
+
+On a fresh 8 GB card the default micro-batch is *not* the fast setting: from 384 up the compute
+buffer pushes past 8 GB and the CUDA runtime spills to system memory (the served VRAM reading
+is unchanged, 7,939 MiB peak). The cliff sits between 256 and 384. Decode is unaffected by the
+micro-batch; only prefill moves.
+
+### Context checkpoints reuse a diverged prefix on the hybrid model
+
+Bonsai 2 is `qwen35` (hybrid attention + GDN state space): a partially cached prompt cannot be
+rewound without context checkpoints, so a mid-conversation edit used to reprocess back to a
+checkpoint hundreds of tokens before the divergence. With `--ctx-checkpoints 16
+--checkpoint-min-step 0` (defaults 32 / 8192), at the same 7,939 MiB peak:
+
+| workload | default | with checkpoints |
+| --- | --- | --- |
+| edit turn 2 of a 4-turn chat | reprocess 517 tok (3.95 s) | **reprocess 87 tok (0.51 s)** |
+| same prefix, different tail | reuse 1,130 | **reuse 1,514** (at `-ub 128`) |
+| 24-turn build to ~70k tokens | — | VRAM flat at 7,939 MiB, no spill |
+
+The checkpoints cost no served VRAM on this card up to a 70k-token context. Append-only chat
+reuse is unaffected; it already reuses the full prefix.
+
+### pi integration
+
+One `pi --print` run against the served model (a tool call plus a summary): prompt eval
+322.5 tok/s, decode 26.4 tok/s, MTP acceptance 0.68, no errors or warnings in the server log.
+
