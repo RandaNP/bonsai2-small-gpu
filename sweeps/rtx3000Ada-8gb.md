@@ -287,3 +287,22 @@ reuse is unaffected; it already reuses the full prefix.
 One `pi --print` run against the served model (a tool call plus a summary): prompt eval
 322.5 tok/s, decode 26.4 tok/s, MTP acceptance 0.68, no errors or warnings in the server log.
 
+## 2026-10-18: five more upstream commits (`0082ac24a`) are neutral
+
+Built and tested the next five `prism` commits past `e3de71522` (`0082ac24a`, build
+`-DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES=89`) on the same card and flags. At a warmed
+7001 MHz memory clock (5471 MHz throttled reads ~20% lower, so compare only at 7001):
+
+| | `e3de71522` | `0082ac24a` |
+| --- | ---: | ---: |
+| prefill (~2,026 tokens) | 404.9 tok/s | 411.8 tok/s |
+| decode (probe median) | 37.4 | ~37 |
+| edit turn 2 of a 4-turn chat | reprocess 87 tok | reprocess 87 tok |
+| same prefix, different tail | reuse 1,514 | reuse 1,514 |
+| served VRAM | 7,925 MiB | 7,925 MiB |
+
+Inside session noise. None of the five targets this setup: `71c147320` (Hadamard tensor split)
+is multi-GPU, `ad2328151` is Vulkan, `5ae2e169e`'s `seq_cp` fix needs more than one sequence
+and its MTP-depth default is overridden by `--spec-draft-n-max 2`, and `0082ac24a` measured
+neutral. `e3de71522` stays the served build; **`0082ac24a` is the newest commit tested so far.**
+
